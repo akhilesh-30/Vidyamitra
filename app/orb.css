@@ -1,0 +1,71 @@
+/* ---------- BrainOrb (landing hero) ---------- */
+.brain-orb {
+  position: relative;
+  width: min(30rem, 74vw);
+  aspect-ratio: 220 / 190;
+  perspective: 900px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.orb-tilt {
+  position: absolute;
+  inset: 0;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.3, 1);
+  transform-style: preserve-3d;
+}
+.orb-tilt svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 28px rgba(240, 178, 90, 0.18));
+}
+.orb-ring {
+  position: absolute;
+  inset: 6%;
+  border: 1px solid rgba(240, 178, 90, 0.16);
+  border-radius: 9999px;
+  pointer-events: none;
+  animation: orbPulse 6s ease-in-out infinite;
+}
+.orb-ring.r2 {
+  inset: -3%;
+  border-color: rgba(169, 155, 216, 0.14);
+  animation-duration: 8.5s;
+  animation-direction: reverse;
+}
+@keyframes orbPulse {
+  0%, 100% { transform: scale(1); opacity: 0.65; }
+  50% { transform: scale(1.045); opacity: 1; }
+}
+.orb-syn {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: var(--ember);
+  box-shadow: 0 0 12px 3px rgba(240, 178, 90, 0.45);
+  opacity: 0;
+  pointer-events: none;
+}
+.orb-syn.s1 { left: 31%; top: 20%; }
+.orb-syn.s2 { left: 66%; top: 16%; }
+.orb-syn.s3 { left: 23%; top: 56%; }
+.orb-syn.s4 { left: 72%; top: 50%; }
+.orb-syn.s5 { left: 47%; top: 36%; }
+.orb-syn.s6 { left: 57%; top: 70%; }
+.brain-orb.burst .orb-syn { animation: synBlink 0.9s ease-out both; }
+.brain-orb.burst .orb-syn.s2 { animation-delay: 0.07s; }
+.brain-orb.burst .orb-syn.s3 { animation-delay: 0.14s; }
+.brain-orb.burst .orb-syn.s4 { animation-delay: 0.21s; }
+.brain-orb.burst .orb-syn.s5 { animation-delay: 0.28s; }
+.brain-orb.burst .orb-syn.s6 { animation-delay: 0.35s; }
+@keyframes synBlink {
+  0% { opacity: 0; transform: scale(0.5); }
+  30% { opacity: 1; transform: scale(1.6); }
+  100% { opacity: 0; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .orb-ring, .orb-syn { animation: none !important; }
+}

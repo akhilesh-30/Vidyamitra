@@ -475,16 +475,30 @@ export async function createCheckin(
   if (flagErr || !flaggedRow) throw new ApiError("Couldn't finish your check-in. Try again in a moment.", 502);
   const flaggedCheckin = flaggedRow as CheckinRow;
 
-  // One open escalation per student at a time keeps the queue honest.
+  // If an open escalation already exists for this student, update it with the latest checkin & reason
   const { data: open, error: openErr } = await admin()
     .from("escalations")
-    .select("id")
+    .select("*")
     .eq("student_id", studentId)
     .eq("status", "open")
-    .limit(1);
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
   if (openErr) throw new ApiError("Couldn't finish your check-in. Try again in a moment.", 502);
-  if ((open ?? []).length > 0) {
-    return { checkin: flaggedCheckin, escalated: false };
+
+  if (open) {
+    const newReason = verdict.reason ?? "Flagged for a counsellor to review.";
+    const { data: updatedEsc, error: updateErr } = await admin()
+      .from("escalations")
+      .update({
+        checkin_id: row.id,
+        reason: newReason,
+      })
+      .eq("id", (open as EscalationRow).id)
+      .select()
+      .single();
+    if (updateErr) throw new ApiError("Couldn't finish your check-in. Try again in a moment.", 502);
+    return { checkin: flaggedCheckin, escalated: true, escalation: updatedEsc as EscalationRow };
   }
 
   const { data: esc, error: escErr } = await admin()
@@ -529,9 +543,9 @@ function dayKey(iso: string): string {
 }
 
 export async function counsellorOverview(days = 14): Promise<CounsellorOverview> {
-  const { data: students, error: sErr } = await admin().from("students").select("id, name, class_level, board");
+  const { data: students, error: sErr } = await admin().from("students").select("id, auth_user_id, name, class_level, board");
   if (sErr) throw new ApiError("Couldn't load class data.", 502);
-  const studentRows = (students ?? []) as Pick<StudentRow, "id" | "name" | "class_level" | "board">[];
+  const studentRows = (students ?? []) as Pick<StudentRow, "id" | "auth_user_id" | "name" | "class_level" | "board">[];
 
   const { data: escalations, error: eErr } = await admin()
     .from("escalations")
@@ -557,6 +571,7 @@ export async function counsellorOverview(days = 14): Promise<CounsellorOverview>
     const ci = e.checkin_id ? checkinById.get(e.checkin_id) : undefined;
     return {
       ...e,
+      auth_user_id: st?.auth_user_id ?? null,
       student_name: st?.name ?? "Unknown student",
       class_level: st?.class_level ?? 0,
       board: (st?.board ?? "CBSE") as StudentRow["board"],

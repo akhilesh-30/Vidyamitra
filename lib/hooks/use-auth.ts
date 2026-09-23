@@ -21,22 +21,22 @@ export function useAuth(): {
   const started = useRef(false);
 
   const check = useCallback(async () => {
-    const sb = getBrowserClient();
-    const {
-      data: { session },
-    } = await sb.auth.getSession();
-    if (!session) {
-      setState({ status: "anon" });
-      return;
-    }
     try {
+      const sb = getBrowserClient();
+      const {
+        data: { session },
+      } = await sb.auth.getSession();
+      if (!session) {
+        setState({ status: "anon" });
+        return;
+      }
       const { student } = await apiFetch<{ student: StudentRow }>("/api/me");
       setState({ status: "ready", student });
     } catch (e) {
       const code = (e as { code?: string }).code;
       if (code === "NO_PROFILE") setState({ status: "no-profile" });
       else if (code === "UNAUTHENTICATED") setState({ status: "anon" });
-      else setState({ status: "error", message: (e as Error).message });
+      else setState({ status: "anon" }); // fallback to anon on auth error so user can sign in
     }
   }, []);
 

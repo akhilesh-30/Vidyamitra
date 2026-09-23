@@ -158,6 +158,7 @@ export interface StressResult {
 }
 
 export interface EscalationWithStudent extends EscalationRow {
+  auth_user_id: string | null;
   student_name: string | null;
   class_level: number;
   board: Board;

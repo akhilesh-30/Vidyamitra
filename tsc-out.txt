@@ -1,0 +1,17 @@
+.next/dev/types/validator.ts(72,31): error TS2344: Type 'typeof import("C:/EDI 3/app/(student)/community/page")' does not satisfy the constraint 'AppPageConfig<"/community">'.
+  Property 'default' is missing in type 'typeof import("C:/EDI 3/app/(student)/community/page")' but required in type 'AppPageConfig<"/community">'.
+app/(student)/checkin/page.tsx(72,11): error TS2322: Type '{ selected: string | null; onSelect: (emoji: any) => void; }' is not assignable to type 'IntrinsicAttributes & { today: string; current: { emoji: string | null; note: string | null; } | null; onSaved: () => void; }'.
+  Property 'selected' does not exist on type 'IntrinsicAttributes & { today: string; current: { emoji: string | null; note: string | null; } | null; onSaved: () => void; }'.
+app/(student)/checkin/page.tsx(73,22): error TS7006: Parameter 'emoji' implicitly has an 'any' type.
+app/(student)/community/page.tsx(37,54): error TS18046: 'a' is of type 'unknown'.
+app/(student)/community/page.tsx(47,9): error TS2322: Type 'unknown' is not assignable to type 'number'.
+app/(student)/games/page.tsx(24,15): error TS2345: Argument of type '(prev: 4) => number' is not assignable to parameter of type 'SetStateAction<4>'.
+  Type '(prev: 4) => number' is not assignable to type '(prevState: 4) => 4'.
+    Type 'number' is not assignable to type '4'.
+app/(student)/games/page.tsx(29,19): error TS2345: Argument of type '4 | 6' is not assignable to parameter of type 'SetStateAction<4>'.
+  Type '6' is not assignable to type 'SetStateAction<4>'.
+app/(student)/mitra/page.tsx(7,10): error TS2300: Duplicate identifier 'ArrowRight'.
+app/(student)/mitra/page.tsx(7,22): error TS2300: Duplicate identifier 'Sparkles'.
+app/(student)/mitra/page.tsx(8,10): error TS2300: Duplicate identifier 'ArrowRight'.
+app/(student)/mitra/page.tsx(8,22): error TS2300: Duplicate identifier 'Sparkles'.
+DONE  

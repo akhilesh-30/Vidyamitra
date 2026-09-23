@@ -1,0 +1,22 @@
+﻿.next/dev/types/validator.ts(62,39): error TS2307: Cannot find module '../../../app/checkin/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(71,39): error TS2307: Cannot find module '../../../app/community/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(80,39): error TS2307: Cannot find module '../../../app/counsellor/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(89,39): error TS2307: Cannot find module '../../../app/dashboard/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(134,39): error TS2307: Cannot find module '../../../app/practice/page.js' or its corresponding type declarations.
+.next/dev/types/validator.ts(143,39): error TS2307: Cannot find module '../../../app/progress/page.js' or its corresponding type declarations.
+.next/types/validator.ts(62,39): error TS2307: Cannot find module '../../app/checkin/page.js' or its corresponding type declarations.
+.next/types/validator.ts(71,39): error TS2307: Cannot find module '../../app/community/page.js' or its corresponding type declarations.
+.next/types/validator.ts(80,39): error TS2307: Cannot find module '../../app/counsellor/page.js' or its corresponding type declarations.
+.next/types/validator.ts(89,39): error TS2307: Cannot find module '../../app/dashboard/page.js' or its corresponding type declarations.
+.next/types/validator.ts(134,39): error TS2307: Cannot find module '../../app/practice/page.js' or its corresponding type declarations.
+.next/types/validator.ts(143,39): error TS2307: Cannot find module '../../app/progress/page.js' or its corresponding type declarations.
+app/api/community/route.ts(31,12): error TS2304: Cannot find name 'ok'.
+app/api/community/route.ts(76,14): error TS2304: Cannot find name 'ok'.
+app/api/community/route.ts(87,14): error TS2304: Cannot find name 'ok'.
+app/api/community/route.ts(103,14): error TS2304: Cannot find name 'ok'.
+app/api/counsellor/register/route.ts(26,45): error TS2551: Property 'updateUserById' does not exist on type 'SupabaseAuthClient'. Did you mean 'updateUser'?
+app/api/counsellor/route.ts(34,41): error TS2339: Property 'listUsers' does not exist on type 'SupabaseAuthClient'.
+app/api/mitra/route.ts(77,51): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+app/api/onboarding/route.ts(80,24): error TS2551: Property 'updateUserById' does not exist on type 'SupabaseAuthClient'. Did you mean 'updateUser'?
+app/page.tsx(9,51): error TS2305: Module '"lucide-react"' has no exported member 'Youtube'.

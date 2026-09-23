@@ -50,7 +50,11 @@ export default function RootLayout({
     <html lang="en" className={`${fraunces.variable} ${publicSans.variable} ${dmSans.variable} ${cormorant.variable}`}>
       {/* Browser extensions (e.g. Grammarly) inject attributes onto <body> before
           hydration; suppress the attribute warning for this element only. */}
-      <body suppressHydrationWarning className="min-h-dvh font-body antialiased">{children}</body>
+      <body suppressHydrationWarning className="min-h-dvh font-body antialiased">
+        <div className="aurora" aria-hidden="true" />
+        <div className="starfield" aria-hidden="true" />
+        {children}
+      </body>
     </html>
   );
 }
