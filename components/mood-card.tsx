@@ -1,7 +1,13 @@
 "use client";
 
-/* The daily check-in card. Faces come from lib/moods.ts so the emoji sent to
-   the server are byte-identical to the ones /api/today scores against. */
+/* The daily check-in card.
+
+   Two modes share the exact same faces (and the same code points as
+   lib/moods.ts, which the server scores against):
+   - full mode (dashboard): pick a face, add a note, save via /api/checkin
+   - controlled mode (/checkin): the page owns saving, so this only renders
+     the picker through `selected` / `onSelect`.
+*/
 
 import { useState } from "react";
 import { Check, HeartPulse, Loader2, Pencil, Wind } from "lucide-react";
@@ -18,11 +24,16 @@ export default function MoodCard({
   today,
   current,
   onSaved,
+  selected,
+  onSelect,
 }: {
-  today: string;
-  current: { emoji: string | null; note: string | null } | null;
-  onSaved: () => void;
+  today?: string;
+  current?: { emoji: string | null; note: string | null } | null;
+  onSaved?: () => void;
+  selected?: string | null;
+  onSelect?: (emoji: string) => void;
 }) {
+  const controlled = typeof onSelect === "function";
   const [emoji, setEmoji] = useState<string | null>(current?.emoji ?? null);
   const [note, setNote] = useState(current?.note ?? "");
   const [editing, setEditing] = useState(false);
@@ -30,7 +41,13 @@ export default function MoodCard({
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<SaveResult | null>(null);
 
-  const alreadyLogged = Boolean(current?.emoji) && !editing;
+  const shown = controlled ? selected ?? null : emoji;
+  const alreadyLogged = !controlled && Boolean(current?.emoji) && !editing;
+
+  function pick(value: string) {
+    if (controlled) onSelect?.(value);
+    else setEmoji(value);
+  }
 
   async function save() {
     if (!emoji || busy) return;
@@ -43,12 +60,53 @@ export default function MoodCard({
       });
       setSaved(res);
       setEditing(false);
-      onSaved();
+      onSaved?.();
     } catch (e) {
       setError(e instanceof Error ? e.message : "That check-in didn't save. Try once more.");
     } finally {
       setBusy(false);
     }
+  }
+
+  const faces = (
+    <>
+      <div className="flex flex-wrap gap-2.5">
+        {MOOD_FACES.map((m) => (
+          <button
+            key={m.emoji}
+            type="button"
+            title={m.label}
+            aria-label={m.label}
+            aria-pressed={shown === m.emoji}
+            onClick={() => pick(m.emoji)}
+            className={`mood-face ${shown === m.emoji ? "selected" : ""}`}
+          >
+            {m.emoji}
+          </button>
+        ))}
+      </div>
+      <p className="faint mt-2.5 text-[12px]">
+        {shown ? MOOD_FACES.find((m) => m.emoji === shown)?.label : "Pick the one that's closest."}
+      </p>
+    </>
+  );
+
+  /* Controlled mode — picker only; the page handles notes and saving. */
+  if (controlled) {
+    return (
+      <div>
+        <SectionHeading
+          title="How are you, really?"
+          hint="One honest face. It quietly reshapes today's study load."
+          right={
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[rgba(240,178,90,0.1)] text-[var(--ember)]">
+              <HeartPulse size={17} />
+            </span>
+          }
+        />
+        {faces}
+      </div>
+    );
   }
 
   return (
@@ -85,24 +143,7 @@ export default function MoodCard({
         </div>
       ) : (
         <>
-          <div className="flex flex-wrap gap-2.5">
-            {MOOD_FACES.map((m) => (
-              <button
-                key={m.emoji}
-                type="button"
-                title={m.label}
-                aria-label={m.label}
-                aria-pressed={emoji === m.emoji}
-                onClick={() => setEmoji(m.emoji)}
-                className={`mood-face ${emoji === m.emoji ? "selected" : ""}`}
-              >
-                {m.emoji}
-              </button>
-            ))}
-          </div>
-          <p className="faint mt-2.5 text-[12px]">
-            {emoji ? MOOD_FACES.find((m) => m.emoji === emoji)?.label : "Pick the one that's closest."}
-          </p>
+          {faces}
 
           <label className="label mt-4" htmlFor="mood-note">
             Want to say more? <span className="faint font-normal">(optional, only you and your counsellor)</span>

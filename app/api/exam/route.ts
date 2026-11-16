@@ -92,7 +92,7 @@ Reply ONLY as JSON: {"questions":[{"question":"...","options":["a","b","c","d"],
             typeof q.answerIndex === "number" && q.answerIndex >= 0 && q.answerIndex < 4
         )
         .slice(0, count);
-      if (list.length === 0) throw new ApiError("Mitra couldn't set this test right now. Please try again shortly.", 502, "AI_UNAVAILABLE");
+      if (list.length === 0) throw new ApiError("Lily Ai couldn't set this test right now. Please try again shortly.", 502, "AI_UNAVAILABLE");
 
       const out: { id: string; question: string; options: string[]; difficulty: number; explanation: string }[] = [];
       for (const [i, q] of list.entries()) {

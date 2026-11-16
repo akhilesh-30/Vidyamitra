@@ -1,24 +1,34 @@
 /**
- * Dev launcher: starts `next dev` and opens the site in the default browser
- * as soon as the server actually responds (no premature "connection refused").
+ * Dev launcher: frees the app port, starts `next dev` pinned to that port, and
+ * opens the browser only once the server actually answers.
  *
- *   npm run dev          -> next dev + auto-open browser
- *   npm run dev:plain    -> plain `next dev` (no auto-open)
+ *   npm run dev          -> next dev on port 3000 + auto-open browser
+ *   npm run dev:plain    -> plain `next dev` (no port pinning, no auto-open)
+ *   npm run stop         -> stop the server and free the port
  *
- * The port follows PORT if set, matching what `next dev` listens on.
+ * Why the port pinning: if something is already listening on 3000, `next dev`
+ * quietly picks a random free port. The browser then opens localhost:3000 and
+ * shows "refused to connect" even though the server is running fine. Freeing
+ * the port and passing `-p` makes the address always match.
+ *
+ * The port follows PORT if set.
  */
 import { spawn } from "node:child_process";
 import { get } from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { devPort, freePort } from "./port-util.mjs";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const nextBin = path.join(projectRoot, "node_modules", "next", "dist", "bin", "next");
-const port = process.env.PORT || "3000";
+const port = devPort();
 const url = `http://localhost:${port}`;
 
+/* A leftover server from a previous run would steal the port. Clear it first. */
+freePort(port, { quiet: true });
+
 /* Start the dev server with inherited stdio so Next's own output stays visible. */
-const server = spawn(process.execPath, [nextBin, "dev"], {
+const server = spawn(process.execPath, [nextBin, "dev", "-p", String(port)], {
   cwd: projectRoot,
   stdio: "inherit",
   env: process.env,
@@ -41,11 +51,15 @@ function openBrowser(target) {
 /* Poll the server and open the browser on the first successful response. */
 const startedAt = Date.now();
 const TIMEOUT_MS = 180_000;
+let opened = false;
+
 function poll() {
   if (server.exitCode !== null) return; // server died; nothing to open
+  if (opened) return;
   const req = get(url, { timeout: 1500 }, (res) => {
     res.resume(); // drain body
-    console.log(`\n> Opening ${url} in your browser...\n`);
+    opened = true;
+    console.log(`\n> Vidyamitra is up: ${url}\n> Press Ctrl+C here, or run stop-vidyamitra.bat, to stop it.\n`);
     openBrowser(url);
   });
   req.on("timeout", () => req.destroy());

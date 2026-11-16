@@ -14,26 +14,25 @@ const PHASES = [
 
 function Breathe() {
   const [running, setRunning] = useState(false);
-  const [phase, setPhase] = useState(0);
-  const [left, setLeft] = useState(PHASES[0].seconds);
-  const [cycles, setCycles] = useState(0);
+  // One pure tick: count down, then advance the phase (4 in · 4 hold · 6 out).
+  const [timer, setTimer] = useState({ phase: 0, left: PHASES[0].seconds as number, cycles: 0 });
+  const { phase, cycles } = timer;
 
   useEffect(() => {
     if (!running) return;
     const t = window.setInterval(() => {
-      setLeft((prev) => {
-        if (prev > 1) return prev - 1;
-        setPhase((p) => {
-          const next = (p + 1) % PHASES.length;
-          if (next === 0) setCycles((c) => c + 1);
-          setLeft(PHASES[next].seconds);
-          return next;
-        });
-        return PHASES[(phase + 1) % PHASES.length].seconds;
+      setTimer((s) => {
+        if (s.left > 1) return { ...s, left: s.left - 1 };
+        const next = (s.phase + 1) % PHASES.length;
+        return {
+          phase: next,
+          left: PHASES[next].seconds,
+          cycles: next === 0 ? s.cycles + 1 : s.cycles,
+        };
       });
     }, 1000);
     return () => window.clearInterval(t);
-  }, [running, phase]);
+  }, [running]);
 
   const scale = running ? (PHASES[phase].label === "Breathe in" ? 1.25 : PHASES[phase].label === "Hold" ? 1.25 : 0.8) : 1;
 

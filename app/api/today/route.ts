@@ -4,6 +4,7 @@ import { ensureCurriculumSynced, fetchMasteryFor } from "@/lib/curriculum/sync";
 import { getSubjects, SUBJECT_LABEL, type BoardId } from "@/lib/curriculum";
 import { generateDailyTasks, dateKeyIST } from "@/lib/tasks";
 import { getLatestStress } from "@/lib/services";
+import { moodScore } from "@/lib/moods";
 
 export const runtime = "nodejs";
 
@@ -130,11 +131,4 @@ export async function GET(req: Request): Promise<Response> {
   } catch (e) {
     return handleApiError(e);
   }
-}
-
-function moodScore(emoji: string | null): number | null {
-  if (!emoji) return null;
-  const order = ["😭", "😞", "😐", "🙂", "😄"];
-  const idx = order.indexOf(emoji);
-  return idx >= 0 ? idx + 1 : null;
 }

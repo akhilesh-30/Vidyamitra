@@ -6,6 +6,7 @@ import { assessStress, type StressAttempt } from "@/lib/compute/stress";
 import { buildAdaptivePlan } from "@/lib/compute/adaptive";
 import { evaluateCheckin, SAD_EMOJIS } from "@/lib/flagging";
 import { hoursAgo } from "@/lib/time";
+import { ensureCurriculumSynced } from "@/lib/curriculum/sync";
 import type {
   StudentRow,
   SubjectRow,
@@ -37,6 +38,12 @@ export interface SubjectSyllabus {
 
 /** Subjects → topics (in syllabus order) → content links for this student's board/class. */
 export async function getSyllabus(student: StudentRow): Promise<SubjectSyllabus[]> {
+  // Mirror the code curriculum into the DB the first time a student needs it,
+  // so the plan/practice/progress surfaces see the same topics as Learn.
+  await ensureCurriculumSynced(student.board, student.class_level).catch((e) => {
+    console.error("Curriculum sync failed:", e);
+  });
+
   const { data: subjects, error: subErr } = await admin()
     .from("subjects")
     .select("*")

@@ -96,7 +96,7 @@ export default function ProgressPage() {
 
       {/* today's adaptive plan */}
       <div className="card mt-6 p-5">
-        <p className="text-[15.5px] font-semibold">Today's plan</p>
+        <p className="text-[15.5px] font-semibold">Today&apos;s plan</p>
         <p className="muted mt-1 text-[13px]">
           {data.plan.quotaReason || `${data.plan.quota} questions today.`}
         </p>
@@ -111,7 +111,7 @@ export default function ProgressPage() {
             </div>
           ))}
           {!data.plan.queue.length && (
-            <p className="faint text-[13px]">Nothing queued — take the rest, you've earned it.</p>
+            <p className="faint text-[13px]">Nothing queued — take the rest, you&apos;ve earned it.</p>
           )}
         </div>
       </div>

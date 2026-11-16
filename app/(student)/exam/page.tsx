@@ -158,7 +158,7 @@ export default function ExamPage() {
             </button>
           )}
 
-          {notesBusy && <Spinner label="Mitra is writing your cheat sheet…" />}
+          {notesBusy && <Spinner label="Lily Ai is writing your cheat sheet…" />}
           {notesError && <ErrorNote message={notesError} />}
 
           {notes && (

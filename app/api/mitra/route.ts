@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 
 function systemPrompt(name: string, grade: number, board: string): string {
   return [
-    `You are Mitra, a warm and wise companion for Indian school students. You are talking to ${name || "a student"}, Class ${grade}, ${board} board.`,
+    `You are Lily Ai, a warm and wise companion for Indian school students. You are talking to ${name || "a student"}, Class ${grade}, ${board} board.`,
     `Your two jobs, blended gently: (1) explain Maths & Science doubts simply, with everyday analogies and tiny examples a Class ${grade} student follows; (2) support mental health — school stress, exam fear, friendships, adolescence, sleep, self-worth.`,
     `Rules you never break:`,
     `- You are NOT a doctor or therapist. Never diagnose, never prescribe medicine. If something sounds serious (self-harm, abuse, deep sadness for weeks), gently and clearly encourage talking to a trusted adult and the school counsellor, and mention India's free helpline Tele-MANAS 14416 (24×7).`,
@@ -33,7 +33,7 @@ export async function POST(req: Request): Promise<Response> {
       return Response.json({ error: "Please type what's on your mind." }, { status: 400 });
     }
     if (!rateLimit(`mitra:${user.id}`, 25, 60_000)) {
-      return Response.json({ error: "You're sending messages faster than Mitra can read. One slow breath, then try again." }, { status: 429 });
+      return Response.json({ error: "You're sending messages faster than Lily Ai can read. One slow breath, then try again." }, { status: 429 });
     }
 
     // Crisis screening — same keyword list as check-ins so the counsellor
@@ -46,7 +46,7 @@ export async function POST(req: Request): Promise<Response> {
         await createCheckin(
           student.id,
           "😭",
-          `[Mitra Safety Alert] Student wrote "${message.slice(0, 180)}" in the chat. Matched: "${serious}". Please follow up with care.`
+          `[Lily Ai Safety Alert] Student wrote "${message.slice(0, 180)}" in the chat. Matched: "${serious}". Please follow up with care.`
         );
       } catch (e) {
         console.error("Failed to log crisis check-in:", e);
@@ -55,7 +55,7 @@ export async function POST(req: Request): Promise<Response> {
 
     if (!isGroqConfigured()) {
       const fallback =
-        `I hear you${student.name ? `, ${student.name}` : ""}. Mitra's AI brain isn't connected right now, but your words matter.\n\n` +
+        `I hear you${student.name ? `, ${student.name}` : ""}. Lily Ai's AI brain isn't connected right now, but your words matter.\n\n` +
         (crisis
           ? `If you are feeling unsafe or thinking of hurting yourself, please tell a trusted adult right now and call Tele-MANAS 14416 (free, 24×7). You deserve support, not silence.`
           : `Please try again in a little while — and meanwhile, try one slow 4-count breath.`);
@@ -84,7 +84,7 @@ export async function POST(req: Request): Promise<Response> {
     if (!upstream.ok || !upstream.body) {
       console.error("Groq stream error:", upstream.status, await upstream.text().catch(() => ""));
       return Response.json(
-        { error: "Mitra is taking a moment to breathe. Try sending your question again." },
+        { error: "Lily Ai is taking a moment to breathe. Try sending your question again." },
         { status: 502 }
       );
     }
@@ -127,7 +127,7 @@ export async function POST(req: Request): Promise<Response> {
           }
           controller.close();
         } catch (e) {
-          console.error("Mitra stream pipe error:", e);
+          console.error("Lily Ai stream pipe error:", e);
           controller.close();
         }
       },

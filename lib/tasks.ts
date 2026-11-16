@@ -41,7 +41,7 @@ const WELLNESS_LOW = [
   { title: "Box breathing reset", detail: "4 counts in, hold 4, out 4, hold 4 — five rounds. Find it in Mind Gym → Breathe.", minutes: 3 },
   { title: "Step outside for sunlight", detail: "5 minutes of open sky. Your nervous system resets faster with real light.", minutes: 5 },
   { title: "Write one worry down", detail: "Put it in your check-in note. Naming a worry makes it smaller than carrying it.", minutes: 3 },
-  { title: "Talk to someone you trust", detail: "One honest sentence about today to a friend, parent, or Mitra counts.", minutes: 5 },
+  { title: "Talk to someone you trust", detail: "One honest sentence about today to a friend, parent, or Lily Ai counts.", minutes: 5 },
 ];
 
 const WELLNESS_OK = [

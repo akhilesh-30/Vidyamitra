@@ -38,7 +38,7 @@ export async function POST(req: Request): Promise<Response> {
     /* ---------- 1) generate: AI questions for a topic (or whole chapter) ---------- */
     if (action === "generate" || action === "generate-chapter") {
       if (!rateLimit(`quiz:${user.id}`, 20, 60_000)) {
-        throw new ApiError("You're making questions faster than Mitra can think. Take a 30-second breather and try again.", 429, "RATE_LIMITED");
+        throw new ApiError("You're making questions faster than Lily Ai can think. Take a 30-second breather and try again.", 429, "RATE_LIMITED");
       }
 
       const count = Math.min(Math.max(Number(body.count ?? 5), 1), 12);
@@ -105,7 +105,7 @@ Reply with ONLY JSON: {"questions":[{"question":"...","options":["a","b","c","d"
           typeof q.answerIndex === "number" && q.answerIndex >= 0 && q.answerIndex < 4
       );
       if (list.length === 0) {
-        throw new ApiError("Mitra couldn't craft questions for this topic right now. Please try again in a moment.", 502, "AI_UNAVAILABLE");
+        throw new ApiError("Lily Ai couldn't craft questions for this topic right now. Please try again in a moment.", 502, "AI_UNAVAILABLE");
       }
 
       // Save into the questions table (keeps the attempts/mastery machinery intact).

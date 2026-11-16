@@ -99,7 +99,7 @@ export default function CheckinPage() {
             <p className="muted mt-1.5 text-[13px] leading-relaxed">
               {escalated} This stays private — between you and your support circle, never your classmates. Talking it through right now genuinely helps.
             </p>
-            <Link href="/mitra" className="btn btn-primary btn-sm mt-3">Talk to Mitra</Link>
+            <Link href="/mitra" className="btn btn-primary btn-sm mt-3">Talk to Lily Ai</Link>
           </div>
         )}
       </section>

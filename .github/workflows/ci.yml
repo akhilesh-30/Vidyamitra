@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# A new push to the same branch cancels the run that is still going.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Lint, typecheck, test & build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Placeholders only: the build must succeed with no real credentials, and the
+    # Supabase clients are created lazily so nothing connects during a build.
+    # Real values stay in .env.local locally / in repo secrets, never here.
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-role-key
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Typecheck (tsc --noEmit)
+        run: npm run typecheck
+
+      - name: Tests (node:test via tsx)
+        run: npm test
+
+      - name: Build (next build)
+        run: npm run build

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Public_Sans, DM_Sans, Cormorant_Garamond } from "next/font/google";
+import { Fraunces, Public_Sans, DM_Sans, Cormorant_Garamond, Antonio, Manrope } from "next/font/google";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -30,6 +30,20 @@ const cormorant = Cormorant_Garamond({
   display: "swap",
 });
 
+/* landing hero: tall condensed headline + a quiet sans for everything else */
+const antonio = Antonio({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-antonio",
+  display: "swap",
+});
+const manrope = Manrope({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-manrope",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: {
     default: "Vidyamitra — a calmer way to keep up with class",
@@ -47,7 +61,10 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${publicSans.variable} ${dmSans.variable} ${cormorant.variable}`}>
+    <html
+      lang="en"
+      className={`${fraunces.variable} ${publicSans.variable} ${dmSans.variable} ${cormorant.variable} ${antonio.variable} ${manrope.variable}`}
+    >
       {/* Browser extensions (e.g. Grammarly) inject attributes onto <body> before
           hydration; suppress the attribute warning for this element only. */}
       <body suppressHydrationWarning className="min-h-dvh font-body antialiased">

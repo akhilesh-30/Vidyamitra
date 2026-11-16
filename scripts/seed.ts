@@ -156,7 +156,7 @@ async function main(): Promise<void> {
 }
 
 async function clearSeededSubject(
-  sb: SupabaseClient<any, any, any, any, any>,
+  sb: SupabaseClient,
   subjectId: string
 ): Promise<void> {
   const { data: topics } = await sb.from("topics").select("id").eq("subject_id", subjectId);

@@ -271,7 +271,7 @@ export default function DashboardPage() {
           </div>
         </div>
         <div className="flex shrink-0 gap-2.5">
-          <Link href="/mitra" className="btn btn-ghost btn-sm">Talk to Mitra</Link>
+          <Link href="/mitra" className="btn btn-ghost btn-sm">Talk to Lily Ai</Link>
           <Link href="/checkin" className="btn btn-primary btn-sm">Check in</Link>
         </div>
       </section>
@@ -293,7 +293,7 @@ function supportText(score: StressLevel | null): string {
   if (score === "low") {
     return "Accuracy and timing both look healthy. Good moment to push a little - not a lot.";
   }
-  return "If it feels like too much, say it out loud to someone you trust. Mitra is here any hour, and your counsellor can step in too.";
+  return "If it feels like too much, say it out loud to someone you trust. Lily Ai is here any hour, and your counsellor can step in too.";
 }
 
 function greeting(): string {

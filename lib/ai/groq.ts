@@ -6,10 +6,16 @@ import "server-only";
  */
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+/**
+ * Model ids move fast: Groq retired the llama-3.x family, so these point at
+ * models the key can actually reach today. Override with GROQ_MODEL /
+ * GROQ_FAST_MODEL in .env.local if Groq renames or retires these later —
+ * no code change needed.
+ */
 /** Good balance of quality & speed for study help. */
-export const GROQ_MODEL = "llama-3.3-70b-versatile";
+export const GROQ_MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
 /** Fast/cheap model for short structured tasks. */
-export const GROQ_FAST_MODEL = "llama-3.1-8b-instant";
+export const GROQ_FAST_MODEL = process.env.GROQ_FAST_MODEL || "openai/gpt-oss-20b";
 
 export function isGroqConfigured(): boolean {
   return Boolean(process.env.GROQ_API_KEY);

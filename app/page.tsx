@@ -1,13 +1,25 @@
 "use client";
 
-/* Vidyamitra landing — calm night sky, a thinking brain of light, and a
-   single honest promise: learn steadily, feel cared for. */
+/* Vidyamitra landing — a night valley of glowing flowers, one cream promise,
+   and below it the honest explanation of what the app does. The hero follows
+   the Fernhollow layout exactly (condensed headline, cream pill, round arrow,
+   scroll cue, sound toggle); its copy and links are Vidyamitra's. */
 
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Brain, HeartPulse, Sparkles, CirclePlay, ShieldCheck, Gamepad2, Users, LineChart, MoonStar } from "lucide-react";
-import BrainOrb from "@/components/brain-orb";
+import {
+  ArrowRight,
+  HeartPulse,
+  Sparkles,
+  CirclePlay,
+  ShieldCheck,
+  Gamepad2,
+  Users,
+  LineChart,
+  MoonStar,
+} from "lucide-react";
+import FlowerValley from "@/components/flower-valley";
 
 const FEATURES = [
   {
@@ -48,145 +60,243 @@ const FEATURES = [
   },
 ];
 
+/* A quiet ambient pad, generated in the browser: no audio file to load, and it
+   starts silent until the speaker button is pressed. */
+function useAmbient(hover: boolean) {
+  const audio = useRef<{ ctx: AudioContext; gain: GainNode; filter: BiquadFilterNode } | null>(null);
+  const [on, setOn] = useState(false);
+
+  const toggle = useCallback(() => {
+    if (!audio.current) {
+      const Ctx =
+        window.AudioContext ??
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      const filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.value = 1900;
+      filter.Q.value = 0.4;
+      const gain = ctx.createGain();
+      gain.gain.value = 0;
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      [110, 164.81, 220, 277.18].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        osc.type = i % 2 === 0 ? "sine" : "triangle";
+        osc.frequency.value = freq;
+        osc.detune.value = (i - 1.5) * 7;
+        const voice = ctx.createGain();
+        voice.gain.value = 0.3 / (i + 1.4);
+        osc.connect(voice);
+        voice.connect(filter);
+        osc.start();
+      });
+
+      audio.current = { ctx, gain, filter };
+    }
+
+    const { ctx, gain } = audio.current;
+    void ctx.resume();
+    const next = !on;
+    gain.gain.cancelScheduledValues(ctx.currentTime);
+    gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(next ? 0.045 : 0, ctx.currentTime + 1.1);
+    setOn(next);
+  }, [on]);
+
+  // the arrow's hover transition also muffles the pad
+  useEffect(() => {
+    const a = audio.current;
+    if (!a) return;
+    a.filter.frequency.setTargetAtTime(hover ? 340 : 1900, a.ctx.currentTime, 0.25);
+  }, [hover]);
+
+  useEffect(() => {
+    return () => {
+      const a = audio.current;
+      if (a) void a.ctx.close().catch(() => {});
+      audio.current = null;
+    };
+  }, []);
+
+  return { on, toggle };
+}
+
 export default function LandingPage() {
-  const [paused, setPaused] = useState(false);
+  const [hover, setHover] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [loaderGone, setLoaderGone] = useState(false);
+  const [revealed, setRevealed] = useState(false);
+  const { on: soundOn, toggle: toggleSound } = useAmbient(hover);
+
+  useEffect(() => {
+    if (!ready) return;
+    const hide = window.setTimeout(() => setLoaderGone(true), 1100);
+    return () => window.clearTimeout(hide);
+  }, [ready]);
 
   return (
-    <main className="relative min-h-dvh overflow-x-clip">
-      {/* nav */}
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
-        <Link href="/" className="flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[#f0b25a] to-[#d4903c] text-[#241503] glow">
-            <Brain size={19} strokeWidth={2.4} />
-          </span>
-          <span className="display text-lg font-semibold tracking-wide">Vidyamitra</span>
-        </Link>
-        <nav className="flex items-center gap-2.5">
-          <Link href="/counsellor" className="btn btn-ghost btn-sm hidden sm:inline-flex">For counsellors</Link>
-          <Link href="/login" className="btn btn-ghost btn-sm">Sign in</Link>
-          <Link href="/signup" className="btn btn-primary btn-sm">Start learning</Link>
-        </nav>
-      </header>
+    <main>
+      {/* ---------- hero ---------- */}
+      <section className="fh">
+        <div className="fh-sky" aria-hidden="true" />
+        <FlowerValley hover={hover} onReady={() => setReady(true)} onIntro={() => setRevealed(true)} />
+        <div className="fh-vignette" aria-hidden="true" />
 
-      {/* hero */}
-      <section className="mx-auto grid max-w-6xl items-center gap-6 px-5 pb-10 pt-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-2 lg:pt-2">
-        <div className="fade-up">
-          <span className="eyebrow"><span className="eyebrow-dot" /> Learn · Feel · Grow</span>
-          <h1 className="hero-title mt-5">
-            Study with a<br />
-            <span className="text-gradient-ember">calmer mind.</span>
-          </h1>
-          <p className="muted mt-6 max-w-xl text-[16.5px] leading-relaxed">
-            Vidyamitra is a <strong className="text-[var(--text-1)]">Maths &amp; Science companion for Classes 5–10</strong> (CBSE &amp; Maharashtra board) that
-            watches your learning <em>and</em> your mood — pacing revision, celebrating progress, and calling a counsellor when the weight gets heavy.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3.5">
-            <Link href="/signup" className="btn btn-primary text-[15px]">
-              Start learning <ArrowRight size={16} />
+        <div className={`fh-ui ${revealed ? "on" : ""}`}>
+          <header className="fh-head">
+            <Link className="fh-logo" href="/" aria-label="Vidyamitra">
+              Vidyamitra
             </Link>
-            <Link href="/login" className="btn btn-ghost text-[15px]">I already have an account</Link>
-          </div>
-          <div className="faint mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px]">
-            <span>Classes 5 – 10</span>
-            <span className="hidden h-3.5 w-px bg-[var(--line-strong)] sm:block" />
-            <span>CBSE · Maharashtra</span>
-            <span className="hidden h-3.5 w-px bg-[var(--line-strong)] sm:block" />
-            <span>AI doubts · Mood-aware</span>
-          </div>
-        </div>
+            <nav className="fh-nav" aria-label="Main">
+              <a href="#features">Learn</a>
+              <a href="#flow">Feel</a>
+              <a href="/counsellor">For counsellors</a>
+              <Link className="fh-pill" href="/signup">
+                Start learning
+              </Link>
+            </nav>
+          </header>
 
-        <div
-          className="fade-up fade-up-2 relative mx-auto aspect-square w-full max-w-[520px]"
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-        >
-          <div className="absolute inset-6 rounded-full bg-[radial-gradient(circle,rgba(240,178,90,0.14),transparent_65%)]" />
-          <BrainOrb />
-          <div className="pointer-events-none absolute inset-x-8 bottom-3 text-center">
-            <span className="chip chip-ember">interactive — it follows your cursor</span>
-          </div>
-        </div>
-      </section>
-
-      {/* features */}
-      <section className="mx-auto max-w-6xl px-5 pb-8 pt-10">
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6 }}
-          className="mb-9 text-center"
-        >
-          <h2 className="text-3xl sm:text-4xl">More than marks.<br className="sm:hidden" /> A steadier you.</h2>
-          <p className="muted mx-auto mt-3 max-w-xl text-[15px]">
-            Six quiet systems working together, so school feels lighter.
-          </p>
-        </motion.div>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((f, i) => (
-            <motion.article
-              key={f.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.5, delay: i * 0.06 }}
-              className="card card-hover p-5"
+          <div className="fh-hero">
+            <h1 className="fh-h1">Learn with a calmer mind.</h1>
+            <p className="fh-cap">
+              Academics and mental wellness, together.
+              <br />
+              Paced to how you actually feel.
+            </p>
+            <Link
+              className="fh-go"
+              href="/signup"
+              aria-label="Start learning"
+              onPointerEnter={() => setHover(true)}
+              onPointerLeave={() => setHover(false)}
             >
-              <span
-                className="mb-4 grid h-10 w-10 place-items-center rounded-xl"
-                style={{
-                  background: `color-mix(in srgb, ${f.color} 14%, transparent)`,
-                  border: `1px solid color-mix(in srgb, ${f.color} 32%, transparent)`,
-                  color: f.color,
-                }}
-              >
-                <f.icon size={19} />
-              </span>
-              <h3 className="text-[16.5px] font-semibold">{f.title}</h3>
-              <p className="muted mt-2 text-[13.5px] leading-relaxed">{f.text}</p>
-            </motion.article>
-          ))}
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 12h16M14 6l6 6-6 6" />
+              </svg>
+            </Link>
+          </div>
+
+          <div className="fh-corner">
+            <span>Scroll to explore</span>
+            <i aria-hidden="true" />
+            <button
+              type="button"
+              className="fh-sound"
+              aria-pressed={soundOn}
+              aria-label="Ambient sound"
+              onClick={toggleSound}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 9.5v5h3.5L12 18V6L7.5 9.5Z" />
+                <path className="w" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" />
+                <path className="x" d="m16 10 4 4m0-4-4 4" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div className={`fh-loader ${ready ? "gone" : ""}`} hidden={loaderGone} aria-hidden="true">
+          <span />
         </div>
       </section>
 
-      {/* how it flows */}
-      <section className="mx-auto max-w-6xl px-5 py-14">
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6 }}
-          className="card relative overflow-hidden p-7 sm:p-10"
-        >
-          <div className="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(143,185,150,0.16),transparent_70%)]" />
-          <span className="eyebrow"><Sparkles size={13} /> How a day flows</span>
-          <div className="mt-7 grid gap-7 sm:grid-cols-3">
-            {[
-              { n: "01", t: "Check in", d: "One emoji and an honest line. The day's plan adapts to it — heavy mornings get lighter quests." },
-              { n: "02", t: "Learn & prove it", d: "Watch a topic video, take the AI quiz, watch the mastery bar climb. Chapter exercise locks it in." },
-              { n: "03", t: "Unwind", d: "Play a mind game, chat with Mitra, or close the app knowing tomorrow is already planned." },
-            ].map((s) => (
-              <div key={s.n} className="relative">
-                <span className="display ember text-3xl font-semibold">{s.n}</span>
-                <h3 className="mt-2 text-lg font-semibold">{s.t}</h3>
-                <p className="muted mt-1.5 text-[13.5px] leading-relaxed">{s.d}</p>
-              </div>
+      {/* ---------- below the valley ---------- */}
+      <div className="relative z-10 bg-[var(--ink-0)]">
+        <section id="features" className="mx-auto max-w-6xl scroll-mt-8 px-5 pb-8 pt-16">
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6 }}
+            className="mb-9 text-center"
+          >
+            <span className="eyebrow">
+              <span className="eyebrow-dot" /> Learn · Feel · Grow
+            </span>
+            <h2 className="mt-4 text-3xl sm:text-4xl">
+              More than marks.
+              <br className="sm:hidden" /> A steadier you.
+            </h2>
+            <p className="muted mx-auto mt-3 max-w-xl text-[15px]">
+              Six quiet systems working together, so school feels lighter.
+            </p>
+          </motion.div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {FEATURES.map((f, i) => (
+              <motion.article
+                key={f.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, delay: i * 0.06 }}
+                className="card card-hover p-5"
+              >
+                <span
+                  className="mb-4 grid h-10 w-10 place-items-center rounded-xl"
+                  style={{
+                    background: `color-mix(in srgb, ${f.color} 14%, transparent)`,
+                    border: `1px solid color-mix(in srgb, ${f.color} 32%, transparent)`,
+                    color: f.color,
+                  }}
+                >
+                  <f.icon size={19} />
+                </span>
+                <h3 className="text-[16.5px] font-semibold">{f.title}</h3>
+                <p className="muted mt-2 text-[13.5px] leading-relaxed">{f.text}</p>
+              </motion.article>
             ))}
           </div>
-          <div className="mt-9">
-            <Link href="/signup" className="btn btn-primary">Begin today <ArrowRight size={16} /></Link>
-          </div>
-        </motion.div>
-      </section>
+        </section>
 
-      {/* footer */}
-      <footer className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 border-t border-[var(--line)] px-5 py-8 sm:flex-row">
-        <span className="faint text-[13px]">© 2026 Vidyamitra — built to lighten school, not add to it.</span>
-        <span className="faint flex items-center gap-2 text-[13px]">
-          <CirclePlay size={15} /> Every topic links a lesson · <span className="sage">In crisis? Tele-MANAS 14416</span>
-        </span>
-      </footer>
+        {/* how it flows */}
+        <section id="flow" className="mx-auto max-w-6xl scroll-mt-8 px-5 pb-14 pt-4">
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6 }}
+            className="card relative overflow-hidden p-7 sm:p-10"
+          >
+            <div className="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(143,185,150,0.16),transparent_70%)]" />
+            <span className="eyebrow">
+              <Sparkles size={13} /> How a day flows
+            </span>
+            <div className="mt-7 grid gap-7 sm:grid-cols-3">
+              {[
+                { n: "01", t: "Check in", d: "One emoji and an honest line. The day's plan adapts to it — heavy mornings get lighter quests." },
+                { n: "02", t: "Learn & prove it", d: "Watch a topic video, take the AI quiz, watch the mastery bar climb. Chapter exercise locks it in." },
+                { n: "03", t: "Unwind", d: "Play a mind game, chat with Lily Ai, or close the app knowing tomorrow is already planned." },
+              ].map((s) => (
+                <div key={s.n} className="relative">
+                  <span className="display ember text-3xl font-semibold">{s.n}</span>
+                  <h3 className="mt-2 text-lg font-semibold">{s.t}</h3>
+                  <p className="muted mt-1.5 text-[13.5px] leading-relaxed">{s.d}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-9 flex flex-wrap items-center gap-3">
+              <Link href="/signup" className="btn btn-primary">
+                Begin today <ArrowRight size={16} />
+              </Link>
+              <Link href="/login" className="btn btn-ghost">
+                I already have an account
+              </Link>
+            </div>
+          </motion.div>
+        </section>
+
+        <footer className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 border-t border-[var(--line)] px-5 py-8 sm:flex-row">
+          <span className="faint text-[13px]">© 2026 Vidyamitra — built to lighten school, not add to it.</span>
+          <span className="faint flex items-center gap-2 text-[13px]">
+            <CirclePlay size={15} /> Every topic links a lesson · <span className="sage">In crisis? Tele-MANAS 14416</span>
+          </span>
+        </footer>
+      </div>
     </main>
   );
 }

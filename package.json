@@ -5,6 +5,9 @@
   "scripts": {
     "dev": "node scripts/open-dev.mjs",
     "dev:plain": "next dev",
+    "stop": "node scripts/stop-dev.mjs",
+    "check:env": "node scripts/check-env.mjs",
+    "smoke": "node scripts/smoke.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

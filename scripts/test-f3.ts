@@ -94,7 +94,7 @@ async function main(): Promise<void> {
 
   const exclude: string[] = [];
   let served = 0;
-  let firstRaw: { question: NextQuestion | null; submit: SubmitResult | null } = { question: null, submit: null };
+  const firstRaw: { question: NextQuestion | null; submit: SubmitResult | null } = { question: null, submit: null };
 
   for (let i = 0; i < SESSION_LENGTH; i++) {
     // ---- serve next question ------------------------------------------

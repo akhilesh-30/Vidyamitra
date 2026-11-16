@@ -1,12 +1,13 @@
 "use client";
 
-/* Mitra — the study companion. Streams answers token-by-token from /api/mitra
-   (Groq SSE with a plain-text fallback, so either wire format works). */
+/* Lily Ai — the study companion. Streams answers token-by-token from /api/mitra.
+   The route replies with plain text, so chunks are appended verbatim; if a
+   response ever arrives as SSE frames (text/event-stream) those are decoded too. */
 
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { ArrowRight, Sparkles } from "lucide-react";
 import { SectionHeading } from "@/components/ui";
+import { apiStream } from "@/lib/api/client";
 
 interface ChatMsg {
   role: "user" | "assistant";
@@ -14,10 +15,11 @@ interface ChatMsg {
   error?: boolean;
 }
 
+const NAME = "Lily Ai";
+
 const GREETING: ChatMsg = {
   role: "assistant",
-  content:
-    "Hi, I'm Mitra. Ask me anything from your syllabus, or just tell me how today is going — I'll keep it simple and kind.",
+  content: `Hi, I'm ${NAME}. Ask me anything from your syllabus, or just tell me how today is going — I'll keep it simple and kind.`,
 };
 
 const STARTERS = [
@@ -27,7 +29,24 @@ const STARTERS = [
   "How do I stop panicking before exams?",
 ];
 
-export default function MitraPage() {
+/** Pull the assistant text out of one SSE `data:` frame, tolerating odd shapes. */
+function textFromSSE(payload: string): string {
+  if (!payload || payload === "[DONE]") return "";
+  try {
+    const json = JSON.parse(payload) as { choices?: { delta?: { content?: unknown } }[] };
+    const content = json.choices?.[0]?.delta?.content;
+    if (typeof content === "string") return content;
+    if (content && typeof content === "object") {
+      const text = (content as { text?: unknown }).text;
+      return typeof text === "string" ? text : "";
+    }
+    return "";
+  } catch {
+    return payload; // plain text frame
+  }
+}
+
+export default function LilyAiPage() {
   const [messages, setMessages] = useState<ChatMsg[]>([GREETING]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -50,73 +69,63 @@ export default function MitraPage() {
     setInput("");
     setSending(true);
 
-    try {
-      const res = await fetch("/api/mitra", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: trimmed, history }),
+    const showReply = (value: string, error = false) =>
+      setMessages((ms) => {
+        const copy = [...ms];
+        copy[copy.length - 1] = { role: "assistant", content: value, error };
+        return copy;
       });
 
-      if (!res.ok || !res.body) {
-        let msg = "Mitra is taking a moment to breathe. Try sending that again.";
-        try {
-          const j = (await res.json()) as { error?: string };
-          if (j?.error) msg = j.error;
-        } catch {
-          /* non-JSON error body — keep the friendly default */
-        }
-        throw new Error(msg);
-      }
+    try {
+      const res = await apiStream("/api/mitra", { message: trimmed, history });
+      if (!res.body) throw new Error(`${NAME} sent an empty reply. Try once more?`);
 
       const reader = res.body.getReader();
-      const dec = new TextDecoder();
-      let buf = "";
+      const decoder = new TextDecoder();
+      const isSSE = (res.headers.get("content-type") ?? "").includes("text/event-stream");
+
       let acc = "";
+      let buffer = "";
 
       for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
-        buf += dec.decode(value, { stream: true });
-        const events = buf.split("\n\n");
-        buf = events.pop() ?? "";
-        for (const ev of events) {
-          for (const line of ev.split("\n")) {
-            const t = line.trim();
-            if (!t.startsWith("data:")) continue;
-            const payload = t.slice(5).trim();
-            if (!payload || payload === "[DONE]") continue;
-            let piece: string | null = null;
-            try {
-              const j = JSON.parse(payload) as { choices?: { delta?: { content?: string } }[] };
-              piece = j.choices?.[0]?.delta?.content ?? null;
-            } catch {
-              piece = payload; // plain-text stream fallback
-            }
-            if (piece) acc += piece;
-            const snapshot = acc;
-            setMessages((ms) => {
-              const cp = [...ms];
-              cp[cp.length - 1] = { role: "assistant", content: snapshot };
-              return cp;
-            });
+        buffer += decoder.decode(value, { stream: true });
+
+        if (!isSSE) {
+          // Plain-text stream: append exactly what arrived so words appear as typed.
+          acc += buffer;
+          buffer = "";
+          showReply(acc);
+          continue;
+        }
+
+        const frames = buffer.split("\n\n");
+        buffer = frames.pop() ?? "";
+        for (const frame of frames) {
+          for (const line of frame.split("\n")) {
+            const line2 = line.trim();
+            if (!line2.startsWith("data:")) continue;
+            acc += textFromSSE(line2.slice(5).trim());
           }
+          showReply(acc);
         }
       }
 
-      if (!acc.trim()) {
-        setMessages((ms) => {
-          const cp = [...ms];
-          cp[cp.length - 1] = { role: "assistant", content: "That came back empty — ask me once more?", error: true };
-          return cp;
-        });
+      // Anything left without a trailing separator.
+      if (isSSE && buffer) {
+        for (const line of buffer.split("\n")) {
+          const t = line.trim();
+          if (t.startsWith("data:")) acc += textFromSSE(t.slice(5).trim());
+        }
+        showReply(acc);
       }
+
+      if (!acc.trim()) showReply(`That came back empty — ask me once more?`, true);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Something went wrong. Try again.";
-      setMessages((ms) => {
-        const cp = [...ms];
-        cp[cp.length - 1] = { role: "assistant", content: msg, error: true };
-        return cp;
-      });
+      const msg =
+        e instanceof Error && e.message ? e.message : "Something went wrong. Try again.";
+      showReply(msg, true);
     } finally {
       setSending(false);
     }
@@ -125,7 +134,7 @@ export default function MitraPage() {
   return (
     <div className="mx-auto flex h-[calc(100dvh-120px)] w-full max-w-3xl flex-col px-4 py-6 sm:px-6">
       <SectionHeading
-        title="Mitra"
+        title={NAME}
         hint="Your study companion — explains, quizzes, and listens. Never judges."
       />
 
@@ -188,7 +197,7 @@ export default function MitraPage() {
         >
           <input
             className="input flex-1"
-            placeholder="Ask Mitra anything…"
+            placeholder={`Ask ${NAME} anything…`}
             value={input}
             maxLength={1200}
             onChange={(e) => setInput(e.target.value)}

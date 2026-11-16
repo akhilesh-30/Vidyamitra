@@ -107,7 +107,7 @@ export default function LearnPage() {
         method: "POST",
         body: { action: "generate", topicId: topic.id, count: 5 },
       });
-      if (!res.questions?.length) throw new Error("Mitra couldn't set this quiz right now. Try again shortly.");
+      if (!res.questions?.length) throw new Error("Lily Ai couldn't set this quiz right now. Try again shortly.");
       setQuiz({
         title: `${chapter.name} · ${topic.name}`,
         questions: res.questions,
