@@ -234,17 +234,13 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.5, delay: i * 0.06 }}
-                className="card card-hover p-5"
+                className="feature-card card-hover p-5"
               >
                 <span
-                  className="mb-4 grid h-10 w-10 place-items-center rounded-xl"
-                  style={{
-                    background: `color-mix(in srgb, ${f.color} 14%, transparent)`,
-                    border: `1px solid color-mix(in srgb, ${f.color} 32%, transparent)`,
-                    color: f.color,
-                  }}
+                className="mb-4 inline-block"
+                style={{ color: "var(--ember)" }}
                 >
-                  <f.icon size={19} />
+                <f.icon size={28} />
                 </span>
                 <h3 className="text-[16.5px] font-semibold">{f.title}</h3>
                 <p className="muted mt-2 text-[13.5px] leading-relaxed">{f.text}</p>
@@ -260,7 +256,7 @@ export default function LandingPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.6 }}
-            className="card relative overflow-hidden p-7 sm:p-10"
+            className="card feature-card relative overflow-hidden p-7 sm:p-10"
           >
             <div className="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(143,185,150,0.16),transparent_70%)]" />
             <span className="eyebrow">

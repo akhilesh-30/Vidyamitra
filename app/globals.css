@@ -144,6 +144,11 @@ h1, h2, h3, .display {
 }
 .card-hover { transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.25s ease; }
 .card-hover:hover { transform: translateY(-3px); border-color: var(--line-strong); }
+.feature-card {
+  background: transparent;
+  border: 1px solid rgba(199, 203, 209, 0.42);
+  border-radius: var(--radius);
+}
 .glass {
   background: rgba(11, 16, 23, 0.6);
   backdrop-filter: blur(14px);
